@@ -1,1 +1,9 @@
-
+**
+!go.mod
+!main.go
+!proxy.go
+!supervisor.go
+!cfedge.go
+!config.json
+!Dockerfile
+!.dockerignore
