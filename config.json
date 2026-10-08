@@ -1,1 +1,316 @@
-
+{
+  "log": {
+    "loglevel": "warning",
+    "dnsLog": false
+  },
+  "dns": {
+    "servers": [
+      "https://1.1.1.1/dns-query",
+      "https://8.8.8.8/dns-query",
+      "https://8.8.4.4/dns-query"
+    ],
+    "queryStrategy": "UseIP",
+    "disableCache": false,
+    "disableFallback": true
+  },
+  "policy": {
+    "levels": {
+      "0": {
+        "handshake": 10,
+        "connIdle": 300,
+        "uplinkOnly": 2,
+        "downlinkOnly": 2,
+        "bufferSize": 512
+      },
+      "1": {
+        "handshake": 10,
+        "connIdle": 300,
+        "uplinkOnly": 2,
+        "downlinkOnly": 2,
+        "bufferSize": 512
+      }
+    },
+    "system": {
+      "statsInboundUplink": false,
+      "statsInboundDownlink": false,
+      "statsOutboundUplink": false,
+      "statsOutboundDownlink": false
+    }
+  },
+  "inbounds": [
+    {
+      "tag": "vless-xhttp-in",
+      "listen": "127.0.0.1",
+      "port": 18443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "24c8b9d5-4e71-4a8e-a96c-13d8a5726201",
+            "level": 0,
+            "email": "ipv4@cazar"
+          },
+          {
+            "id": "e7f2b1c4-9a3d-4c5e-8b6f-7123d4e5f602",
+            "level": 1,
+            "email": "ipv6@cazar"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "xhttp",
+        "security": "none",
+        "xhttpSettings": {
+          "path": "/api/v1/sync",
+          "mode": "auto",
+          "xPaddingBytes": "100-1000",
+          "noSSEHeader": false,
+          "scMaxEachPostBytes": 1000000,
+          "scMaxBufferedPosts": 30,
+          "scStreamUpServerSecs": "20-50"
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls",
+          "quic"
+        ],
+        "routeOnly": true
+      }
+    },
+    {
+      "tag": "vless-ws-in",
+      "listen": "127.0.0.1",
+      "port": 18444,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "24c8b9d5-4e71-4a8e-a96c-13d8a5726201",
+            "level": 0,
+            "email": "ipv4@cazar"
+          },
+          {
+            "id": "e7f2b1c4-9a3d-4c5e-8b6f-7123d4e5f602",
+            "level": 1,
+            "email": "ipv6@cazar"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "path": "/api/v1/live",
+          "heartbeatPeriod": 30
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls",
+          "quic"
+        ],
+        "routeOnly": true
+      }
+    },
+    {
+      "tag": "trojan-ws-in",
+      "listen": "127.0.0.1",
+      "port": 18445,
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+            "password": "c9f4a8b7e2d14a5c9b6e8f1a2b3c4d5e",
+            "level": 0,
+            "email": "ipv4@cazar"
+          },
+          {
+            "password": "f1e2d3c4b5a67890123456789abcdef0",
+            "level": 1,
+            "email": "ipv6@cazar"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "path": "/api/v1/gateway",
+          "heartbeatPeriod": 30
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls",
+          "quic"
+        ],
+        "routeOnly": true
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "direct-ipv6",
+      "protocol": "freedom",
+      "settings": {
+        "targetStrategy": "AsIs"
+      },
+      "streamSettings": {
+        "sockopt": {
+          "domainStrategy": "UseIP",
+          "happyEyeballs": {
+            "prioritizeIPv6": true,
+            "tryDelayMs": 150,
+            "interleave": 1,
+            "maxConcurrentTry": 4
+          },
+          "tcpNoDelay": true,
+          "tcpKeepAliveIdle": 45,
+          "tcpKeepAliveInterval": 10,
+          "tcpUserTimeout": 60000
+        }
+      }
+    },
+    {
+      "tag": "direct-ipv4",
+      "protocol": "freedom",
+      "settings": {
+        "targetStrategy": "AsIs"
+      },
+      "streamSettings": {
+        "sockopt": {
+          "domainStrategy": "UseIPv4",
+          "tcpNoDelay": true,
+          "tcpKeepAliveIdle": 45,
+          "tcpKeepAliveInterval": 10,
+          "tcpUserTimeout": 60000
+        }
+      }
+    },
+    {
+      "tag": "block",
+      "protocol": "blackhole",
+      "settings": {
+        "response": {
+          "type": "none"
+        }
+      }
+    },
+    {
+      "tag": "dns-out",
+      "protocol": "dns",
+      "settings": {}
+    }
+  ],
+  "routing": {
+    "domainStrategy": "IPOnDemand",
+    "rules": [
+      {
+        "type": "field",
+        "inboundTag": [
+          "vless-xhttp-in",
+          "vless-ws-in",
+          "trojan-ws-in"
+        ],
+        "network": "tcp,udp",
+        "port": "53",
+        "outboundTag": "dns-out"
+      },
+      {
+        "type": "field",
+        "domain": [
+          "domain:railway.internal",
+          "domain:local",
+          "domain:localhost"
+        ],
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "ip": [
+          "geoip:private",
+          "0.0.0.0/8",
+          "10.0.0.0/8",
+          "100.64.0.0/10",
+          "127.0.0.0/8",
+          "169.254.0.0/16",
+          "172.16.0.0/12",
+          "192.0.0.0/24",
+          "192.0.2.0/24",
+          "192.168.0.0/16",
+          "198.18.0.0/15",
+          "198.51.100.0/24",
+          "203.0.113.0/24",
+          "224.0.0.0/4",
+          "240.0.0.0/4",
+          "::/128",
+          "::1/128",
+          "64:ff9b::/96",
+          "100::/64",
+          "2001:2::/48",
+          "2001:db8::/32",
+          "2002::/16",
+          "3fff::/20",
+          "fc00::/7",
+          "fe80::/10",
+          "ff00::/8"
+        ],
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "network": "udp",
+        "port": "7,17,19,69,111,123,137,138,161,162,389,1900,3702,5353,5683,11211",
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "network": "tcp",
+        "port": "25,465,587,2525",
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "protocol": [
+          "bittorrent"
+        ],
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "domain": [
+          "geosite:category-ads-all"
+        ],
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "user": [
+          "ipv6@cazar"
+        ],
+        "outboundTag": "direct-ipv6"
+      },
+      {
+        "type": "field",
+        "user": [
+          "ipv4@cazar"
+        ],
+        "outboundTag": "direct-ipv4"
+      },
+      {
+        "type": "field",
+        "network": "tcp,udp",
+        "outboundTag": "direct-ipv4"
+      }
+    ]
+  }
+}
