@@ -1,1 +1,25 @@
-
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile",
+    "watchPatterns": [
+      "Dockerfile",
+      ".dockerignore",
+      "go.mod",
+      "*.go",
+      "config.json",
+      "railway.json"
+    ]
+  },
+  "deploy": {
+    "healthcheckPath": "/.well-known/hc-5b1e7c",
+    "healthcheckTimeout": 120,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10,
+    "numReplicas": 1,
+    "sleepApplication": false,
+    "overlapSeconds": 30,
+    "drainingSeconds": 25
+  }
+}
